@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from docxtpl import DocxTemplate, RichText
 import io
+import numpy as np
 
 # ---------------- 處理數字邏輯（只用在「單一變數」Sheet） ----------------
 def process_value_to_richtext(val, key_name=""):
@@ -14,7 +15,7 @@ def process_value_to_richtext(val, key_name=""):
 
     if "~" in val_str or "～" in val_str:
         rt = RichText()
-        rt.add(val_str, color="000000", bold=False) # 強制黑色、不加粗
+        rt.add(val_str, color="000000", bold=False)  # 強制黑色、不加粗
         return rt
 
     is_number = False
@@ -70,10 +71,30 @@ def process_value_to_richtext(val, key_name=""):
     return val_str
 
 
+# ---------------- 表格 sheet：值幾乎不動，但整數不要顯示 .0 ----------------
+def table_cell_keep_value_but_fix_int(v):
+    """
+    表格欄位：
+    - NaN -> ""
+    - 39.0 / 2.0 這種「float 但實際為整數」-> int (顯示 39、2)
+    - 其他完全原樣
+    """
+    if pd.isna(v):
+        return ""
+
+    # numpy.float64 也會進來
+    if isinstance(v, (float, np.floating)):
+        # 避免 39.0000001 這種不是整數的被誤轉
+        if float(v).is_integer():
+            return int(v)
+
+    return v
+
+
 # ---------------- 主程式 ----------------
 st.set_page_config(page_title="節能績效計劃書生成器", page_icon="📊")
-
 st.title("📊 HWsmart節能績效計劃書生成器")
+
 st.markdown("""
 此工具支援 **Excel 表格同步** 功能：
 
@@ -126,14 +147,14 @@ if uploaded_word and uploaded_excel:
                         val = row[1]
                         context[key] = process_value_to_richtext(val, key_name=key)
 
-                # 2) 表格 Sheet（其餘）：完全不更動值（只把 NaN 變成 ""）
+                # 2) 表格 Sheet（其餘）：幾乎原樣，只修整數不要 .0
                 else:
                     df = excel_file.parse(sheet_name=sheet_name)
 
-                    # ✅ 只刪除整列全空（不改任何 cell 值）
+                    # 只刪除整列全空
                     df = df.dropna(how="all")
 
-                    # ✅ 欄位名 strip（不影響值）
+                    # 欄位名 strip（不影響值）
                     df.columns = [str(c).strip() for c in df.columns]
 
                     table_list = []
@@ -141,8 +162,7 @@ if uploaded_word and uploaded_excel:
                         row_dict = {}
                         for col_name in df.columns:
                             v = row[col_name]
-                            # ✅ 唯一處理：NaN → ""（避免 Word 顯示 nan）
-                            row_dict[col_name] = "" if pd.isna(v) else v
+                            row_dict[col_name] = table_cell_keep_value_but_fix_int(v)
                         table_list.append(row_dict)
 
                     context[sheet_name] = table_list
