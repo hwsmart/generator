@@ -18,19 +18,19 @@ class AppConfig:
     PAGE_ICON = "📊"
     LAYOUT = "wide"
     
-    # 變數格式化規則 
+    # 變數取值規則 
     FORMAT_RULES = {
         "me_prefix": {"description": "ME 類：千分位 + 保留原始小數"},
         "decimal_2": {"keywords": ["_rate", "elec_", "new_cop_std", "new_eff_std"], "description": "2 位小數"},
         "decimal_1": {"keywords": ["_year"], "description": "1 位小數"},
     }
 
-    # 只有欄位名稱包含以下關鍵字的，才會進行數值格式化(千分位+小數點)
+    # 只有欄位名稱包含以下關鍵字的，才會將數值轉乘千分位+小數點
     TABLE_INCLUDE_KEYWORDS = ["kwh", "elecost", "eleccostperkwh"]
 
-    # 表格識別關鍵字
+
     TARGET_NAMES = ["名稱", "name", "設備名稱"]
-    TARGET_NOS = ["no", "編號", "設備編號", "那台冰水主機代號"]
+    TARGET_NOS = ["no", "編號", "設備編號", "冰水主機代號"]
     
 
     SORT_WEIGHTS = {
@@ -38,9 +38,9 @@ class AppConfig:
         "pump": 2, "泵": 2,
         "tower": 3, "水塔": 3
     }
-
+#----格式化資料------
 class DataFormatter:
-    """格式化"""
+
     
     @staticmethod
     def clean_text(val: Any) -> str:
@@ -119,8 +119,8 @@ class DataFormatter:
             # 若目標欄位內容轉型失敗 (例如寫了 "N/A")，則回傳原值
             return val_str
 
+#----讀取Excel-----
 class ExcelParser:
-    """Excel 讀取"""
     #表格分類
     @staticmethod
     def _find_header_row(df_preview: pd.DataFrame) -> Tuple[int, str]:
@@ -417,3 +417,4 @@ if __name__ == "__main__":
     app = ReportGeneratorUI()
 
     app.run()
+
