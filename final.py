@@ -11,14 +11,14 @@ import re
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# --- 1. 配置與常數 ---
+
 
 class AppConfig:
     PAGE_TITLE = "節能績效計劃書生成器"
     PAGE_ICON = "📊"
     LAYOUT = "wide"
     
-    # 變數格式化規則 (針對 Sheet 1 變數設定，保持不變)
+    # 變數格式化規則 
     FORMAT_RULES = {
         "me_prefix": {"description": "ME 類：千分位 + 保留原始小數"},
         "decimal_2": {"keywords": ["_rate", "elec_", "new_cop_std", "new_eff_std"], "description": "2 位小數"},
@@ -32,7 +32,7 @@ class AppConfig:
     TARGET_NAMES = ["名稱", "name", "設備名稱"]
     TARGET_NOS = ["no", "編號", "設備編號", "那台冰水主機代號"]
     
-    # 排序權重 (數字越小越前面)
+
     SORT_WEIGHTS = {
         "chiller": 1, "主機": 1,
         "pump": 2, "泵": 2,
@@ -40,7 +40,7 @@ class AppConfig:
     }
 
 class DataFormatter:
-    """數據清洗與格式化"""
+    """格式化"""
     
     @staticmethod
     def clean_text(val: Any) -> str:
@@ -53,7 +53,7 @@ class DataFormatter:
 
     @staticmethod
     def format_variable_value(val: Any, key_name: str = "") -> str:
-        """變數頁籤的格式化邏輯 """
+
         val_str = DataFormatter.clean_text(val)
         if not val_str: 
             return ""
@@ -81,7 +81,7 @@ class DataFormatter:
             if any(k in key_lower for k in AppConfig.FORMAT_RULES["decimal_1"]["keywords"]):
                 return f"{float_val:,.1f}"
             
-            # 預設: 整數
+            # 整數
             return f"{float_val:,.0f}"
 
         except ValueError:
@@ -89,7 +89,7 @@ class DataFormatter:
 
     @staticmethod
     def format_table_value(val: Any, col_name: str) -> str:
-        """針對excel內數值的格式化邏輯"""
+
         val_str = DataFormatter.clean_text(val)
         if not val_str: 
             return ""
@@ -98,20 +98,18 @@ class DataFormatter:
 
         is_target_col = any(k in col_lower for k in AppConfig.TABLE_INCLUDE_KEYWORDS)
 
-        # 如果不是 kwh, elecost, eleccostperkwh，直接回傳原值
+        # 欄位名稱如果不是 kwh, elecost, eleccostperkwh，直接回傳原值
         if not is_target_col:
             
             return val_str
 
-        # 2. 針對目標欄位進行數值格式化
+
         try:
 
             clean_num_str = val_str.replace(",", "")
             f_val = float(clean_num_str)
             
 
-            # 若為整數，加千分位 (1,000)
-            # 若為小數，加千分位 + 兩位小數 (1,000.50)
             if f_val.is_integer():
                 return f"{int(f_val):,}"
             else:
@@ -123,11 +121,11 @@ class DataFormatter:
 
 class ExcelParser:
     """Excel 讀取"""
-    
+    #表格分類
     @staticmethod
     def _find_header_row(df_preview: pd.DataFrame) -> Tuple[int, str]:
 
-        #找前 20 列以尋找標題列與表格類型
+
         target_names = [x.lower() for x in AppConfig.TARGET_NAMES]
         target_nos = [x.lower() for x in AppConfig.TARGET_NOS]
         
@@ -141,7 +139,6 @@ class ExcelParser:
             if has_name and has_no:
                 return i, "equipment"
             
-        # 回傳第一個非空行作為普通表格
         for i, row in df_preview.iterrows():
              if any(pd.notna(x) and str(x).strip() != "" for x in row.values):
                  return i, "general"
@@ -199,7 +196,6 @@ class ExcelParser:
                 row_dict = {}
                 for col in df.columns:
                     if col in ['temp_name', 'temp_no']: continue
-                    # 套用表格數值格式化邏輯
                     row_dict[col] = DataFormatter.format_table_value(row[col], col)
                 
 
@@ -383,16 +379,15 @@ class ReportGeneratorUI:
                 builder = ContextBuilder(excel_file)
                 context = builder.build()
                 
-                # --- 動態檔名處理邏輯 ---
+                # 動態檔名處理邏輯
                 # 從變數中取得 company_name，若無則預設為 "Company"
                 c_name = context.get("company_name", "Company")
                 
-                # 清洗檔名
                 safe_name = re.sub(r'[\\/*?:"<>|]', "", str(c_name)).strip()
                 if not safe_name: safe_name = "Company"
                 
                 zip_filename = f"Report_{safe_name}.zip"
-                # ---------------------------
+
                 
                 zip_buffer = io.BytesIO()
                 with zipfile.ZipFile(zip_buffer, "w") as zf:
@@ -420,4 +415,5 @@ class ReportGeneratorUI:
 
 if __name__ == "__main__":
     app = ReportGeneratorUI()
+
     app.run()
