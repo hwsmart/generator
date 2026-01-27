@@ -237,7 +237,6 @@ class ContextBuilder:
         return self.context
 
     def _load_variables(self):
-        """讀取單一變數設定頁籤"""
         sheet_name = "變數" if "變數" in self.xls.sheet_names else self.xls.sheet_names[0]
         try:
             df_var = self.xls.parse(sheet_name, header=None)
@@ -417,4 +416,5 @@ if __name__ == "__main__":
     app = ReportGeneratorUI()
 
     app.run()
+
 
