@@ -38,7 +38,7 @@ class AppConfig:
         "pump": 2, "泵": 2,
         "tower": 3, "水塔": 3
     }
-#----格式化資料------
+
 class DataFormatter:
 
     
@@ -416,5 +416,6 @@ if __name__ == "__main__":
     app = ReportGeneratorUI()
 
     app.run()
+
 
 
