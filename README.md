@@ -7,6 +7,7 @@
 
 
 a.變數小數點後規則:
+
   "me_ ":保留原始小數
 
   "_rate"、 "elec_"、 "new_cop_std"、 "new_eff_std":保留2 位小數
