@@ -41,7 +41,7 @@ class AppConfig:
 
 class DataFormatter:
 
-    
+    #清洗資料
     @staticmethod
     def clean_text(val: Any) -> str:
         if pd.isna(val): 
@@ -50,7 +50,7 @@ class DataFormatter:
         if s.lower() in ["nan", "none", "nat", ""]: 
             return ""
         return s
-
+    #部分變數轉成文字資料
     @staticmethod
     def format_variable_value(val: Any, key_name: str = "") -> str:
 
@@ -86,7 +86,7 @@ class DataFormatter:
 
         except ValueError:
             return val_str
-
+            
     @staticmethod
     def format_table_value(val: Any, col_name: str) -> str:
 
@@ -416,6 +416,7 @@ if __name__ == "__main__":
     app = ReportGeneratorUI()
 
     app.run()
+
 
 
 
